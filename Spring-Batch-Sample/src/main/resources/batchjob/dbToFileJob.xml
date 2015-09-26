@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" 
+	xmlns:task="http://www.springframework.org/schema/task" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+		http://www.springframework.org/schema/task
+		http://www.springframework.org/schema/task/spring-task.xsd
+	">
+<description>Example job to copy data From Table.</description>
+<import resource="classpath:/context/DataSourceContext.xml"/>
+<import resource="classpath:/context/BatchContext.xml"/> 	 	
+<task:executor id="taskExecutor" pool-size="5"/>
+<!-- <bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor" >
+<property name="concurrencyLimit" value="20"/>
+</bean> -->
+	<batch:job id="BatchJob1">
+		<batch:step id="step1">			
+			<batch:tasklet throttle-limit="1" task-executor="taskExecutor">
+				<batch:chunk reader="dbItemReader" writer="flatFileWriter" commit-interval="1" />
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+	<bean id="dbItemReader"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"  scope="step">
+		<property name="dataSource" ref="oraDataSource" />
+		<property name="sql"
+			value="#{jobParameters['sqlQuery']}" />
+		<property name="rowMapper">
+			<bean class="com.project.reader.GenericDBMapper" />
+		</property>
+  </bean>
+
+	
+	<bean id="flatFileWriter" class="org.springframework.batch.item.file.FlatFileItemWriter" scope="step"> 
+		<property name="resource" value="#{jobParameters['outputFileName']}" />
+		<property name="lineAggregator">
+			<bean
+				class="org.springframework.batch.item.file.transform.DelimitedLineAggregator">
+				<property name="delimiter" value="#{jobParameters['outputDelimiter']}" />
+				<property name="fieldExtractor">
+					<bean class="org.springframework.batch.item.file.transform.PassThroughFieldExtractor" />
+				</property>	
+			</bean>
+		</property>
+		<!-- <property name="appendAllowed" value="true"/> -->
+	</bean>
+ </beans>

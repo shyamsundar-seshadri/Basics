@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+	">
+<description>Example job to copy data between files.</description>
+<!-- <task-executor="taskExecutor" /> -->
+	<batch:job id="BatchJob1">
+		<batch:step id="step1">			
+			<batch:tasklet task-executor="taskExecutor" throttle-limit="10">
+				<batch:chunk reader="flatFileSetReader" writer="flatFileWriter" commit-interval="10" />
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+
+	<bean id="flatFileSetReader" class="org.springframework.batch.item.file.FlatFileItemReader">
+		<property name="resource" value="classpath:/data/report.dat" />
+		<property name="lineMapper">
+		    <bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+			<property name="lineTokenizer" ref="fixedLengthTokenizer"/>
+			<property name="fieldSetMapper">
+				<bean class="org.springframework.batch.item.file.mapping.PassThroughFieldSetMapper" />
+			</property>
+		    </bean>
+		</property>
+	</bean> 
+	
+	<bean id="flatFileBeanReader" class="org.springframework.batch.item.file.FlatFileItemReader">
+		<property name="resource" value="classpath:/data/report.dat" />
+		<property name="lineMapper">
+		    <bean class="org.springframework.batch.item.file.mapping.DefaultLineMapper">
+			<property name="lineTokenizer" ref="fixedLengthTokenizer"/>
+			<property name="fieldSetMapper">
+				<bean class="org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper" >
+					<property name="prototypeBeanName" value="report"/>
+				</bean>
+			</property>
+		    </bean>
+		</property>
+	</bean> 
+	
+	<bean id="fixedLengthTokenizer" class="org.springframework.batch.item.file.transform.FixedLengthTokenizer">
+		<property name="names" value="id,sales,staffName,date"/>
+		<property name="columns" value="1-5,6-10,16-25,26-35"/>
+	 <property name="strict" value="false"/> 	
+	</bean>
+	<bean id="flatFileWriter" class="org.springframework.batch.item.file.FlatFileItemWriter">
+		<property name="resource" value="file:src/main/resources/data/output.csv" />
+		<property name="lineAggregator">
+			<bean
+				class="org.springframework.batch.item.file.transform.DelimitedLineAggregator">
+				<property name="delimiter" value="," />
+				<property name="fieldExtractor">
+					<bean
+						class="org.springframework.batch.item.file.transform.PassThroughFieldExtractor" />
+				</property>
+			</bean>
+		</property>
+		<!-- <property name="appendAllowed" value="true"/> -->
+	</bean>
+
+
+<!-- 	<bean id="DBwriter"
+		class="com.project.writer.BatchDBWriter">
+		<property name="dataSource" ref="HSQLDb" />
+	</bean> -->
+</beans>

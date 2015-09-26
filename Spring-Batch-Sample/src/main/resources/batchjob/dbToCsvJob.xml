@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:batch="http://www.springframework.org/schema/batch" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+		http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+		http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+	">
+<description>Example job to copy data From Table.</description>
+<import resource="classpath:/context/DataSourceContext.xml"/>
+<import resource="classpath:/context/BatchContext.xml"/> 	 	
+	<batch:job id="BatchJob1">
+		<batch:step id="step1">			
+			<batch:tasklet>
+				<batch:chunk reader="dbItemReader" writer="csvFileWriter" commit-interval="10" />
+			</batch:tasklet>
+		</batch:step>
+	</batch:job>
+
+
+	<bean id="dbItemReader"
+		class="org.springframework.batch.item.database.JdbcCursorItemReader"  scope="step">
+		<property name="dataSource" ref="oraDataSource" />
+		<property name="sql"
+			value="select * from Employee" />
+		<property name="rowMapper">
+			<bean class="com.project.reader.EmployeeRowMapper" />
+		</property>
+  </bean>
+
+	
+	<bean id="csvFileWriter" class="org.springframework.batch.item.file.FlatFileItemWriter">
+		<property name="resource" value="file:src/main/resources/data/outputEmp.csv" />
+		<property name="lineAggregator">
+			<bean
+				class="org.springframework.batch.item.file.transform.DelimitedLineAggregator">
+				<property name="delimiter" value="," />
+				<property name="fieldExtractor">
+					<bean class="org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor"> 
+						<property name="names" value="name,age,id"/>
+					</bean>
+				</property> 
+			</bean>
+		</property>
+		<!-- <property name="appendAllowed" value="true"/> -->
+	</bean>
+
+
+<!-- 	<bean id="DBwriter"
+		class="com.project.writer.BatchDBWriter">
+		<property name="dataSource" ref="HSQLDb" />
+	</bean>
+ -->
+ </beans>
