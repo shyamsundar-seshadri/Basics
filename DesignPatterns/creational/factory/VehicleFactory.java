@@ -1,4 +1,9 @@
-package creational_Factory;
+package factory;
+
+import domain.Bike;
+import domain.Bus;
+import domain.Car;
+import domain.Vehicle;
 
 public class VehicleFactory {
 	public Vehicle getPassengerCount(int passengers){
