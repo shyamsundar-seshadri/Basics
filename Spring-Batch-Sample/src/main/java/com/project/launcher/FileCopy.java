@@ -26,7 +26,7 @@ public class FileCopy {
 	@Autowired
 	public static void main(String[] args) {
 		long starttime = new Date().getTime();
-		String[] springConfig = { "/batchjob/dbToFileJob.xml" };
+		String[] springConfig = { "/batchjob/fileToFileJob.xml" };
 		Log log = LogFactory.getLog(FileCopy.class);
 		context = new ClassPathXmlApplicationContext(springConfig);
 		log.debug("Starting FileCopy at " + starttime);
